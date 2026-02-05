@@ -4,6 +4,9 @@
     import * as Card from "$lib/components/ui/card";
     import Label from "$lib/components/ui/label/label.svelte";
     import * as RadioGroup from "$lib/components/ui/radio-group/index.js";
+    import { Loader } from "@lucide/svelte";
+
+    let loading = $state(false);
 </script>
 
 <svelte:head>
@@ -22,7 +25,16 @@
         </Card.Header>
 
         <Card.Content class="flex justify-between items-center">
-            <form method="POST" use:enhance class="w-full space-y-6">
+            <form
+                method="POST"
+                use:enhance={() => {
+                    loading = true;
+                    async () => {
+                        loading = false;
+                    };
+                }}
+                class="w-full space-y-6"
+            >
                 <div class="flex flex-col sm:flex-row gap-2 justify-between">
                     <Label>Login As</Label>
 
@@ -42,7 +54,16 @@
                     </RadioGroup.Root>
                 </div>
 
-                <Button type="submit" class="w-full">Login</Button>
+                <Button
+                    disabled={loading}
+                    type="submit"
+                    class="w-full {loading ? 'cursor-not-allowed' : ''}"
+                >
+                    {#if loading}
+                        <Loader class="animate-spin" />
+                    {/if}
+                    Login
+                </Button>
             </form>
         </Card.Content>
     </Card.Root>
