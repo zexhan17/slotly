@@ -28,17 +28,15 @@ export const GET: RequestHandler = async ({ params, locals }) => {
         id: table.booking.id,
         status: table.booking.status,
         createdAt: table.booking.createdAt,
-        slotId: table.booking.slotId,
+        startTime: table.booking.startTime,
+        endTime: table.booking.endTime,
+        serviceId: table.booking.serviceId,
         userId: table.booking.userId,
         userEmail: table.user.email,
-        slotStartTime: table.slot.startTime,
-        slotEndTime: table.slot.endTime,
         serviceName: table.service.name,
-        serviceId: table.service.id
     })
         .from(table.booking)
-        .innerJoin(table.slot, eq(table.booking.slotId, table.slot.id))
-        .innerJoin(table.service, eq(table.slot.serviceId, table.service.id))
+        .innerJoin(table.service, eq(table.booking.serviceId, table.service.id))
         .innerJoin(table.user, eq(table.booking.userId, table.user.id))
         .where(eq(table.service.businessId, params.id));
 

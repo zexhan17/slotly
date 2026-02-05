@@ -8,36 +8,33 @@ import { eq, and, gte, lte } from 'drizzle-orm';
 export async function sendReminders() {
     const now = new Date();
     const twentyFourHoursFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
 
-    // Get bookings with slots in the next 24 hours
+    // Get bookings starting in the next 24 hours
     const upcomingBookings = await db.select({
         booking: table.booking,
-        slot: table.slot,
         service: table.service,
         business: table.business,
         user: table.user
     })
         .from(table.booking)
-        .innerJoin(table.slot, eq(table.booking.slotId, table.slot.id))
-        .innerJoin(table.service, eq(table.slot.serviceId, table.service.id))
+        .innerJoin(table.service, eq(table.booking.serviceId, table.service.id))
         .innerJoin(table.business, eq(table.service.businessId, table.business.id))
         .innerJoin(table.user, eq(table.booking.userId, table.user.id))
         .where(
             and(
                 eq(table.booking.status, 'booked'),
-                gte(table.slot.startTime, now),
-                lte(table.slot.startTime, twentyFourHoursFromNow)
+                gte(table.booking.startTime, now),
+                lte(table.booking.startTime, twentyFourHoursFromNow)
             )
         );
 
-    for (const { booking, slot, service, business, user } of upcomingBookings) {
-        const timeUntilAppointment = slot.startTime.getTime() - now.getTime();
+    for (const { booking, service, business, user } of upcomingBookings) {
+        const timeUntilAppointment = booking.startTime.getTime() - now.getTime();
         const hoursUntil = Math.floor(timeUntilAppointment / (60 * 60 * 1000));
 
         // Send 24-hour reminder
         if (hoursUntil <= 24 && hoursUntil > 23) {
-            const message = `Reminder: Your appointment for ${service.name} at ${business.name} is tomorrow at ${slot.startTime.toLocaleTimeString()}`;
+            const message = `Reminder: Your appointment for ${service.name} at ${business.name} is tomorrow at ${booking.startTime.toLocaleTimeString()}`;
             await createAndSendReminder(user.id, message);
         }
 

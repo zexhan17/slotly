@@ -6,12 +6,13 @@ import { startCleanupService } from '$lib/server/cleanup';
 import { apiRateLimit } from '$lib/server/rateLimit';
 import { error } from '@sveltejs/kit';
 
-// Initialize database with seed data
-seedDatabase().catch(console.error);
-
-// Start background services
-startReminderService();
-startCleanupService();
+// Initialize database with seed data, then start background services
+seedDatabase()
+	.then(() => {
+		startReminderService();
+		startCleanupService();
+	})
+	.catch(console.error);
 
 const handleAuth: Handle = async ({ event, resolve }) => {
 	// Apply rate limiting to API routes
